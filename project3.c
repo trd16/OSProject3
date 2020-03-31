@@ -51,7 +51,7 @@ int main(){
 			return 0;			
 		}
 
-		else if(strcmp(inputitems[0], "info\n") == 0){
+		else if(strcmp(inputitems[0], "info\n") == 0){	//thomas
 			printf("Info selected\n");
 			
 			//parse the boot sector. print the field name and corresponding values for each entry, one per line
@@ -64,7 +64,7 @@ int main(){
 				//root cluster
 		}
 
-		else if(strcmp(inputitems[0], "size") == 0){
+		else if(strcmp(inputitems[0], "size") == 0){	//thomas
 			printf("Size selected\n");
 			
 			//check file name in inputitem[1] exists
@@ -76,7 +76,7 @@ int main(){
 			
 		}
 	
-		else if(strcmp(inputitems[0], "ls") == 0){
+		else if(strcmp(inputitems[0], "ls") == 0){	//thomas
 			printf("ls selected\n");
 	
 			//check that dirname/inputitems[1] exists and is a directory
@@ -87,7 +87,7 @@ int main(){
 				//fprint("Directory does not exist.\n");
 		}
 		
-		else if(strcmp(inputitems[0], "cd") == 0){
+		else if(strcmp(inputitems[0], "cd") == 0){	//scott
 			printf("cd selected\n");
 
 			//check that dirname/inputitems[1] exists and is a directory
@@ -98,7 +98,7 @@ int main(){
 				//fprint("Directory does not exist.\n");
 		}
 
-		else if(strcmp(inputitems[0], "creat") == 0){
+		else if(strcmp(inputitems[0], "creat") == 0){	//taylor
 			printf("creat selected\n");
 
 			//check file does not already exist
@@ -108,7 +108,7 @@ int main(){
 				//fprint("File already exists.\n");
 		}
 
-		else if(strcmp(inputitems[0], "mkdir") == 0){
+		else if(strcmp(inputitems[0], "mkdir") == 0){	//taylor
 			printf("mkdir selected\n");
 
 			//check directory does not already exist
@@ -118,7 +118,7 @@ int main(){
 				//printf("Directory already exists.\n");
 		}
 
-		else if(strcmp(inputitems[0], "mv") == 0){
+		else if(strcmp(inputitems[0], "mv") == 0){	//scott
 			printf("mv selected\n");
 
 
@@ -134,7 +134,7 @@ int main(){
 
 		}
 
-		else if(strcmp(inputitems[0],"open") == 0){
+		else if(strcmp(inputitems[0],"open") == 0){	//taylor
 			printf("open selected\n");
 
 			//print error if file\inputitems[1] is already opened
@@ -157,7 +157,7 @@ int main(){
 
 		}
 
-		else if(strcmp(inputitems[0], "close") == 0){
+		else if(strcmp(inputitems[0], "close") == 0){		//taylor
 			printf("close selected\n");
 
 			//print error if file is not opened/in the table
@@ -172,7 +172,7 @@ int main(){
 		
 		}
 
-		else if(strcmp(inputitems[0], "read") == 0){
+		else if(strcmp(inputitems[0], "read") == 0){	//scott
 			printf("read selected");
 
 			//print error if filename/inputitems[1] does not exist
@@ -193,7 +193,7 @@ int main(){
 
 		}
 
-		else if(strcmp(inputitems[0], "write") == 0){
+		else if(strcmp(inputitems[0], "write") == 0){	//thomas
 			printf("write selected\n");
 		
 			//print error if filename/inputitems[1] does not exist
@@ -217,7 +217,7 @@ int main(){
 
 		}
 
-		else if(strcmp(inputitems[0], "rm") == 0){
+		else if(strcmp(inputitems[0], "rm") == 0){	//thomas
 			printf("rm selected\n");
 
 			//print error if filename/inputitems[1] does not exist
@@ -232,7 +232,7 @@ int main(){
 
 		}
 
-		else if(strcmp(inputitems[0], "cp") == 0){
+		else if(strcmp(inputitems[0], "cp") == 0){	//scott
 			printf("cp selected\n");
 			
 			//print error if filename/inputitems[1] does not exist
