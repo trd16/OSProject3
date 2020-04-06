@@ -86,7 +86,7 @@ int main(){
 			if (instr.numTokens > 1) {
 				instr.tokens[1] = resolvePath(instr.tokens[1]);
 			
-				if (isValidDir(instr.tokens[0]))
+				if (isValidDir(instr.tokens[1]))
 					execute(instr.tokens);
 				else
 					printf("Invalid directory\n");
