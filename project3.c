@@ -45,8 +45,34 @@ int isExecutable(char* file);
 
 void execute(char** cmd);
 void parse(instruction* instr);
+void openFile(char file[]);
+void closeFile();
+void makeDir(char directory[]);
+void creatFile(char file[]);
+
+unsigned int BPB_BytesPerSec;
+unsigned int BPB_SecPerClus;
+unsigned int BPB_RsvdSecCnt;
+unsigned int BPB_NumFATs;
+unsigned int BPB_FATSz32;
+unsigned int BPB_RootClus;
+unsigned int BPB_TotSec32;
+
+FILE *imagefile;
+
+struct __attribute__((__packed__)) DirectoryEntry{
+	unsigned char DIR_name[11];
+	unsigned char DIR_Attributes;
+
+};
+
 
 int main(){
+
+	imagefile = fopen("fat32.img", "r");
+
+
+
 	char* command = "start";
 	instruction instr;
 	instr.tokens = NULL;
@@ -110,22 +136,17 @@ int main(){
 		else if(strcmp(instr.tokens[0], "creat") == 0){	//taylor
 			printf("creat selected\n");
 
-			//check file does not already exist
-				//creates a file in the current working directory with a size of 0 bytes and with a name of filename/inputitems[1]
-			
-			//if it does exist print error
-				//fprint("File already exists.\n");
-		}
+			creatFile(instr.tokens[1]);
+
+
+			}
 
 		else if(strcmp(instr.tokens[0], "mkdir") == 0){	//taylor
 			printf("mkdir selected\n");
 
-			//check directory does not already exist
-				//create a new directory in the current working directory with the name dirname/inputitems[1]
-			
-			//if it does exist print error
-				//printf("Directory already exists.\n");
-		}
+			makeDir(instr.tokens[1]);	
+
+			}
 
 		else if(strcmp(instr.tokens[0], "mv") == 0){	//scott
 			printf("mv selected\n");
@@ -146,38 +167,16 @@ int main(){
 		else if(strcmp(instr.tokens[0],"open") == 0){	//taylor
 			printf("open selected\n");
 
-			//print error if file\inputitems[1] is already opened
-				//printf("File is already opened.\n");
 
-			//print eror if file does not exist
-				//printf("File does not exist.\n");
+			openFile(instr.tokens[1]);
 
-			//print error if invalid mode is used
-				//printf("Invalid mode.\n");
-
-			//open a file named filename in the current working directory
-				//file can only be read from or written to if it is opened first
-				//need to maintain table of opened files and add filename to it when open is called
-				//mode is a string and is only valid if it is one of the following
-					//r - read-only
-					//w - write-only
-					//rw - read and write
-					//wr - write and read
 
 		}
 
 		else if(strcmp(instr.tokens[0], "close") == 0){		//taylor
 			printf("close selected\n");
 
-			//print error if file is not opened/in the table
-				//printf("File is not open.");
-		
-			//print error if file does not exist
-				//printf("File does not exist./n");
-
-			//close file named filename/inputitems[1]
-				//need to remove file entry from the open file table
-								
+			closeFile();
 		
 		}
 
@@ -267,6 +266,69 @@ int main(){
 
 	return 0;
 }
+
+
+void openFile(char file[]){
+//print error if file\inputitems[1] is already opened
+		//printf("File is already opened.\n");
+
+//print eror if file does not exist
+		//printf("File does not exist.\n");
+
+//print error if invalid mode is used
+		//printf("Invalid mode.\n");
+
+//open a file named filename in the current working directory
+		//file can only be read from or written to if it is opened first
+		//need to maintain table of opened files and add filename to it when open is called
+		//mode is a string and is only valid if it is one of the following
+			//r - read-only
+			//w - write-only
+			//rw - read and write
+			//wr - write and read
+
+
+}
+
+
+void closeFile(void){
+//print error if file is not opened/in the table
+	//printf("File is not open.");
+		
+//print error if file does not exist
+	//printf("File does not exist./n");
+
+//close file named filename/inputitems[1]
+	//need to remove file entry from the open file table
+								
+		
+
+
+}
+
+
+void makeDir(char directory[]){
+//check directory does not already exist
+	//create a new directory in the current working directory with the name dirname/inputitems[1]
+			
+//if it does exist print error
+	//printf("Directory already exists.\n");
+	
+
+}
+
+
+void creatFile(char file[]){
+//check file does not already exist
+	//creates a file in the current working directory with a size of 0 bytes and with a name of filename/inputitems[1]
+			
+//if it does exist print error
+	//fprint("File already exists.\n");
+
+
+
+}
+
 
 ///parses user input
 ///places tokens inside of instruction pointer passed
