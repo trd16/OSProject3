@@ -289,7 +289,8 @@ int main(){
 		}
 
 		else if(strcmp(instr.tokens[0], "exit") == 0){
-			return 0;
+			//return 0;
+			break;
 		
 		}
 
