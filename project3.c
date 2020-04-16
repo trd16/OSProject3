@@ -55,10 +55,13 @@ unsigned int BPB_SecPerClus;
 unsigned int BPB_RsvdSecCnt;
 unsigned int BPB_NumFATs;
 unsigned int BPB_FATSz32;
+unsigned int BPB_RootEntCnt;
 unsigned int BPB_RootClus;
 unsigned int BPB_TotSec32;
+char BS_OEMName[8];
 
 FILE *imagefile;
+FILE *openfile;
 
 struct __attribute__((__packed__)) DirectoryEntry{
 	unsigned char DIR_name[11];
@@ -66,13 +69,43 @@ struct __attribute__((__packed__)) DirectoryEntry{
 
 };
 
+char openFileList[100];
+
+				
+int filelistspot = 0;
 
 int main(){
 
 	imagefile = fopen("fat32.img", "r");
+///////////////////////////////////////////////////////
+
+
+    /* Print out the names of the files and directories
+    for(z = 0; z < BPB_BytesPerSec; z += 32)
+    {
+    	v = z + 11;
+
+    	if((rootDir[v] != 15))
+    	{
+            	for(q=z;q<z+11;q++){
+                    printf("%c",rootDir[q]);
+		    // Store the directory names into an array
+   		    dirNames[z] = dirNames[z] + rootDir[q];
+            	}
+            	printf("\n");
+   	}
+    }*/
 
 
 
+
+
+
+
+
+
+
+//////////////////////////////////
 	char* command = "start";
 	instruction instr;
 	instr.tokens = NULL;
@@ -165,10 +198,35 @@ int main(){
 		}
 
 		else if(strcmp(instr.tokens[0],"open") == 0){	//taylor
-			printf("open selected\n");
 
 
-			openFile(instr.tokens[1]);
+			if( instr.tokens[1] == NULL || instr.tokens[2] == NULL){
+				printf("Missing parameters.\n");
+				continue;
+			}
+			
+			//print error if invalid mode is used
+			if(strcmp(instr.tokens[2], "r") != 0 && strcmp(instr.tokens[2],"w") != 0 && strcmp(instr.tokens[2], "rw") != 0 && strcmp(instr.tokens[2], "wr") != 0){
+				printf("Invalid mode.\n");
+				continue;
+			}
+
+
+			int filecheck = 0;
+			
+			//print error if file\inputitems[1] is already opened
+				int i;
+				for(i = 0; i < 100; i++){
+					if(strcmp(instr.tokens[1],&openFileList[i]) == 0){
+						filecheck = 1;
+					}
+				}
+
+
+			if(filecheck == 1)
+				printf("File is already opened.\n");
+			else
+				openFile(instr.tokens[1]);
 
 
 		}
@@ -254,6 +312,11 @@ int main(){
 
 		}
 
+		else if(strcmp(instr.tokens[0], "exit") == 0){
+			return 0;
+		
+		}
+
 		else{
 			printf("Error: Wrong Command Name\n");
 		}
@@ -269,23 +332,47 @@ int main(){
 
 
 void openFile(char file[]){
-//print error if file\inputitems[1] is already opened
-		//printf("File is already opened.\n");
 
-//print eror if file does not exist
-		//printf("File does not exist.\n");
-
-//print error if invalid mode is used
-		//printf("Invalid mode.\n");
 
 //open a file named filename in the current working directory
-		//file can only be read from or written to if it is opened first
-		//need to maintain table of opened files and add filename to it when open is called
-		//mode is a string and is only valid if it is one of the following
-			//r - read-only
-			//w - write-only
-			//rw - read and write
-			//wr - write and read
+	openfile = fopen(file, "r");
+
+//	if(openfile == NULL)
+//	{
+//		printf("Error: file does not exist.\n");
+//		return;
+//	}	
+//	else{
+		printf("Opened %s\n", file);
+		openFileList[filelistspot] = *file;		
+		filelistspot++;
+
+
+//	}
+/*	fseek(openfile, 3, SEEK_SET);
+	fread(&BS_OEMName, 8, 1, openfile);
+	
+	fseek(openfile, 11, SEEK_SET);
+	fread(&BPB_BytesPerSec, 2, 1, openfile);
+	fread(&BPB_SecPerClus, 1, 1, openfile);
+	fread(&BPB_RsvdSecCnt, 2, 1, openfile);
+	fread(&BPB_NumFATs, 1, 1, openfile);
+	fread(&BPB_RootEntCnt, 2, 1, openfile);
+	
+	fseek(openfile, 36, SEEK_SET);
+	fread(&BPB_FATSz32, 4, 1, openfile);
+
+	fseek(openfile, 44, SEEK_SET);
+	fread(&BPB_RootClus, 4, 1, openfile);
+
+	//set offset
+	
+	int offset = 0;
+
+	fseek(openfile, offset, SEEK_SET);
+	//fread(&dir[0], 32, 16, openfile);
+*/
+
 
 
 }
@@ -604,3 +691,5 @@ void execute(char** cmd) {
 		waitpid(pid,&status, 0);
 	}
 }
+
+
