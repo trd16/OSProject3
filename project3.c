@@ -46,7 +46,7 @@ int isExecutable(char* file);
 void execute(char** cmd);
 void parse(instruction* instr);
 void openFile(char file[]);
-void closeFile();
+void closeFile(char file[]);
 void makeDir(char directory[]);
 void creatFile(char file[]);
 
@@ -77,35 +77,6 @@ int filelistspot = 0;
 int main(){
 
 	imagefile = fopen("fat32.img", "r");
-///////////////////////////////////////////////////////
-
-
-    /* Print out the names of the files and directories
-    for(z = 0; z < BPB_BytesPerSec; z += 32)
-    {
-    	v = z + 11;
-
-    	if((rootDir[v] != 15))
-    	{
-            	for(q=z;q<z+11;q++){
-                    printf("%c",rootDir[q]);
-		    // Store the directory names into an array
-   		    dirNames[z] = dirNames[z] + rootDir[q];
-            	}
-            	printf("\n");
-   	}
-    }*/
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////////
 	char* command = "start";
 	instruction instr;
 	instr.tokens = NULL;
@@ -234,7 +205,12 @@ int main(){
 		else if(strcmp(instr.tokens[0], "close") == 0){		//taylor
 			printf("close selected\n");
 
-			closeFile();
+			if( instr.tokens[1] == NULL){
+				printf("Missing parameters.\n");
+				continue;
+			}
+			else
+				closeFile(instr.tokens[1]);
 		
 		}
 
@@ -378,17 +354,26 @@ void openFile(char file[]){
 }
 
 
-void closeFile(void){
+void closeFile(char file[]){
 //print error if file is not opened/in the table
-	//printf("File is not open.");
-		
-//print error if file does not exist
-	//printf("File does not exist./n");
+int filecheck = 0;
+int i;
+for(i = 0; i < 100; i++){
+	if(strcmp(file,&openFileList[i]) == 0){
+		filecheck = i;
+	}
+}
 
-//close file named filename/inputitems[1]
-	//need to remove file entry from the open file table
-								
+if(filecheck == 0)
+	printf("File is not open.");
 		
+else{
+//close file named filename/inputitems[1]
+//need to remove file entry from the open file table
+	strcpy(&openFileList[i], "");		
+	fclose(openfile);
+								
+}		
 
 
 }
