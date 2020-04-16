@@ -61,18 +61,20 @@ unsigned int BPB_TotSec32;
 char BS_OEMName[8];
 
 unsigned int curDir;
+unsigned int FirstDataSector;
+unsigned int FirstSectorofCluster;
 unsigned int offset;
 
 FILE *imagefile;
 FILE *openfile;
 
 struct __attribute__((__packed__)) DirectoryEntry{
-	unsigned char DIR_name[11];
-	unsigned char DIR_Attributes;
+	unsigned char DIR_Name[11];
+	unsigned char DIR_Attr;
 
 };
 
-
+struct DirectoryEntry dir[16];
 
 char openFileList[100];
 
@@ -105,14 +107,55 @@ int main(){
 	fread(&BPB_RootClus, 4, 1, imagefile);
 
 	
+	FirstDataSector = (BPB_NumFATs * BPB_FATSz32) + BPB_RsvdSecCnt;
+	FirstSectorofCluster = FirstDataSector + ((BPB_RootClus - 2) * BPB_SecPerClus);
+
+
 	offset = BPB_RootClus - 2;
 	offset = offset * BPB_BytesPerSec;
 	offset+= BPB_BytesPerSec * BPB_RsvdSecCnt;
 	offset+= BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec;
 
-	fseek(imagefile, offset, SEEK_SET);
-	//fread(&dir[0], 32, 16, imagefile);
+	char rootDir[512];
+	char dirNames[16];
 
+	fseek(imagefile, offset, SEEK_SET);
+//	fread(&dir[0], 32, 16, imagefile);
+
+
+	fread(rootDir, 1, BPB_BytesPerSec, imagefile);
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// THIS IS SOLELY FOR TESTING NEEDS TO BE REMOVED BEFORE TURNING IN////////////////////////
+//										//////////
+//										/////////	
+//
+	printf("List of Current Directories/Files: \n");
+	int z;
+	int v;
+	int q;
+	for(z = 0; z < BPB_BytesPerSec; z += 32){
+		v = z + 11;
+
+		if((rootDir[v] != 15)){
+			for(q=z;q<z+11;q++){
+				printf("%c", rootDir[q]);
+
+				dirNames[z] = dirNames[z] + rootDir[q];
+			
+			}
+			printf("\n");
+
+		}
+
+	}
+//										///////////////
+//										//////////////
+//										//////////////
+//////////////////////////////////////////////////////////////////////////////////////////////	
 
 
 	do {
@@ -365,31 +408,6 @@ void openFile(char file[]){
 		filelistspot++;
 
 
-//	}
-/*	fseek(openfile, 3, SEEK_SET);
-	fread(&BS_OEMName, 8, 1, openfile);
-	
-	fseek(openfile, 11, SEEK_SET);
-	fread(&BPB_BytesPerSec, 2, 1, openfile);
-	fread(&BPB_SecPerClus, 1, 1, openfile);
-	fread(&BPB_RsvdSecCnt, 2, 1, openfile);
-	fread(&BPB_NumFATs, 1, 1, openfile);
-	fread(&BPB_RootEntCnt, 2, 1, openfile);
-	
-	fseek(openfile, 36, SEEK_SET);
-	fread(&BPB_FATSz32, 4, 1, openfile);
-
-	fseek(openfile, 44, SEEK_SET);
-	fread(&BPB_RootClus, 4, 1, openfile);
-
-	//set offset
-	
-	int offset = 0;
-
-	fseek(openfile, offset, SEEK_SET);
-	//fread(&dir[0], 32, 16, openfile);
-*/
-
 
 
 }
@@ -397,25 +415,22 @@ void openFile(char file[]){
 
 void closeFile(char file[]){
 //print error if file is not opened/in the table
-int filecheck = 0;
-int i;
-for(i = 0; i < 100; i++){
-	if(strcmp(file,&openFileList[i]) == 0){
-		filecheck = i;
+	int filecheck = 0;
+	int i;
+	for(i = 0; i < 100; i++){
+		if(strcmp(file,&openFileList[i]) == 0)
+			filecheck = i;
 	}
-}
 
-if(filecheck == 0)
-	printf("File is not open.");
+	if(filecheck == 0)
+		printf("File is not open.");
 		
-else{
-//close file named filename/inputitems[1]
-//need to remove file entry from the open file table
-	strcpy(&openFileList[i], "");		
-	fclose(openfile);
-								
-}		
-
+	else{
+	//close file named filename/inputitems[1]
+	//need to remove file entry from the open file table
+		strcpy(&openFileList[i], "");		
+		fclose(openfile);								
+	}		
 
 }
 
