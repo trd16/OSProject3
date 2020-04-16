@@ -104,13 +104,8 @@ int main(){
 	fseek(imagefile, 44, SEEK_SET);
 	fread(&BPB_RootClus, 4, 1, imagefile);
 
-	//set offset
-	curDir = BPB_RootClus;
-
-	if(curDir == 0)
-		curDir = 2;
-
-	offset = curDir - 2;
+	
+	offset = BPB_RootClus - 2;
 	offset = offset * BPB_BytesPerSec;
 	offset+= BPB_BytesPerSec * BPB_RsvdSecCnt;
 	offset+= BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec;
