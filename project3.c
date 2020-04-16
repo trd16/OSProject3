@@ -60,6 +60,9 @@ unsigned int BPB_RootClus;
 unsigned int BPB_TotSec32;
 char BS_OEMName[8];
 
+unsigned int curDir;
+unsigned int offset;
+
 FILE *imagefile;
 FILE *openfile;
 
@@ -68,6 +71,8 @@ struct __attribute__((__packed__)) DirectoryEntry{
 	unsigned char DIR_Attributes;
 
 };
+
+
 
 char openFileList[100];
 
@@ -82,6 +87,39 @@ int main(){
 	instr.tokens = NULL;
 	instr.numTokens = 0;
 
+	
+	fseek(imagefile, 3, SEEK_SET);
+	fread(&BS_OEMName, 8, 1, imagefile);
+	
+	fseek(imagefile, 11, SEEK_SET);
+	fread(&BPB_BytesPerSec, 2, 1, imagefile);
+	fread(&BPB_SecPerClus, 1, 1, imagefile);
+	fread(&BPB_RsvdSecCnt, 2, 1, imagefile);
+	fread(&BPB_NumFATs, 1, 1, imagefile);
+	fread(&BPB_RootEntCnt, 2, 1, imagefile);
+	
+	fseek(imagefile, 36, SEEK_SET);
+	fread(&BPB_FATSz32, 4, 1, imagefile);
+
+	fseek(imagefile, 44, SEEK_SET);
+	fread(&BPB_RootClus, 4, 1, imagefile);
+
+	//set offset
+	curDir = BPB_RootClus;
+
+	if(curDir == 0)
+		curDir = 2;
+
+	offset = curDir - 2;
+	offset = offset * BPB_BytesPerSec;
+	offset+= BPB_BytesPerSec * BPB_RsvdSecCnt;
+	offset+= BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec;
+
+	fseek(imagefile, offset, SEEK_SET);
+	//fread(&dir[0], 32, 16, imagefile);
+
+
+
 	do {
 		printf("$ ");	
 		clearInstruction(&instr);
@@ -92,12 +130,19 @@ int main(){
 			
 			//parse the boot sector. print the field name and corresponding values for each entry, one per line
 				//bytes per sector
+				printf("Bytes per Sector: %d\n", BPB_BytesPerSec);
 				//sectors per cluster
+				printf("Sectors Per Cluster: %d\n", BPB_SecPerClus);
 				//reserved sector count
+				printf("Reserved Sector Count: %d\n", BPB_RsvdSecCnt);
 				//number of FATs
+				printf("Number of FATs: %d\n", BPB_NumFATs);
 				//total sectors 
+				printf("Total Sectors: %d\n", BPB_TotSec32);
 				//FATsize
+				printf("FATsize: %d\n", BPB_FATSz32);
 				//root cluster
+				printf("Root Cluster: %d\n", BPB_RootClus);
 		}
 
 		else if(strcmp(instr.tokens[0], "size") == 0){	//thomas
