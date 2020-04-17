@@ -253,7 +253,19 @@ int main(){
 				continue;
 			}
 
-
+			int filecheck = 0;
+			
+			//print error if file\inputitems[1] is already opened
+		
+			int i;
+			for(i = 0; i < 16; i++){
+				if(strcmp(instr.tokens[1], &openFileList[i]) == 0)
+				{
+					printf("File is already opened.\n");
+					break;
+				}
+			}
+		
 
 			int filereal = 0;
 			char temp[12];
@@ -270,8 +282,13 @@ int main(){
 						temp[p] = dir[j].DIR_Name[p];
 
 				}
-					if(strcmp(instr.tokens[1], temp) == 0)
+					if(strcmp(instr.tokens[1], temp) == 0){
 						filereal = 1;
+						
+						strcpy(&openFileList[filelistspot],instr.tokens[1]);
+						filelistspot++;
+						break;
+					}	
 								
 			}
 
@@ -283,22 +300,8 @@ int main(){
 				printf("File does not exist.\n");
 
 
-
-			int filecheck = 0;
-			
-			//print error if file\inputitems[1] is already opened
-				int i;
-				for(i = 0; i < 100; i++){
-					if(strcmp(instr.tokens[1],&openFileList[i]) == 0){
-						filecheck = 1;
-					}
-				}
-
-
-		//	if(filecheck == 1)
-		//		printf("File is already opened.\n");
-		//	else
-		//		openFile(instr.tokens[1]);
+//			else
+//				openFile(instr.tokens[1]);
 
 
 		}
@@ -416,7 +419,7 @@ void openFile(char file[]){
 
 
 //open a file named filename in the current working directory
-	openfile = fopen(file, "r");
+//	openfile = fopen(file, "r");
 
 //	if(openfile == NULL)
 //	{
@@ -425,8 +428,8 @@ void openFile(char file[]){
 //	}	
 //	else{
 		printf("Opened %s\n", file);
-		openFileList[filelistspot] = *file;		
-		filelistspot++;
+		//openFileList[filelistspot] = *file;		
+		//filelistspot++;
 
 
 
