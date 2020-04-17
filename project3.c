@@ -50,6 +50,12 @@ void closeFile(char file[]);
 void makeDir(char directory[]);
 void creatFile(char file[]);
 
+
+int littleToBigEndian(unsigned int *address);
+
+
+
+
 unsigned int BPB_BytesPerSec;
 unsigned int BPB_SecPerClus;
 unsigned int BPB_RsvdSecCnt;
@@ -71,6 +77,16 @@ FILE *openfile;
 struct __attribute__((__packed__)) DirectoryEntry{
 	unsigned char DIR_Name[11];
 	unsigned char DIR_Attr;
+	unsigned char DIR_NTRes;
+	unsigned char DIR_CrtTimeTenth;
+	unsigned char DIR_CrtTime[2];
+	unsigned char DIR_CrtDate[2];
+	unsigned char DIR_LstAccDate[2];
+	unsigned char DIR_FstClusHI[2];
+	unsigned char DIR_WrtTime[2];
+	unsigned char DIR_WrtDate[2];
+	unsigned char DIR_FstClusLO[2];
+	unsigned char DIR_FileSize[4];
 
 };
 
@@ -120,42 +136,13 @@ int main(){
 	char dirNames[16];
 
 	fseek(imagefile, offset, SEEK_SET);
-//	fread(&dir[0], 32, 16, imagefile);
-
-
-	fread(rootDir, 1, BPB_BytesPerSec, imagefile);
-
+	fread(&dir[0], 32, 16, imagefile);
+	
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////
-// THIS IS SOLELY FOR TESTING NEEDS TO BE REMOVED BEFORE TURNING IN////////////////////////
-//										//////////
-//										/////////	
-//
-	printf("List of Current Directories/Files: \n");
-	int z;
-	int v;
-	int q;
-	for(z = 0; z < BPB_BytesPerSec; z += 32){
-		v = z + 11;
+	
 
-		if((rootDir[v] != 15)){
-			for(q=z;q<z+11;q++){
-				printf("%c", rootDir[q]);
-
-				dirNames[z] = dirNames[z] + rootDir[q];
-			
-			}
-			printf("\n");
-
-		}
-
-	}
-//										///////////////
-//										//////////////
-//										//////////////
-//////////////////////////////////////////////////////////////////////////////////////////////	
 
 
 	do {
@@ -196,7 +183,19 @@ int main(){
 		}
 	
 		else if(strcmp(instr.tokens[0], "ls") == 0){	//thomas
-			if (instr.numTokens > 1) {
+
+			int p;
+			int j;
+			for(j = 1; j < 16; j=j+2){
+				for(p = 0; p < 12; p++)
+					printf("%c", dir[j].DIR_Name[p]);
+			printf("\n");	
+	
+			}
+
+
+
+	/*		if (instr.numTokens > 1) {
 				instr.tokens[1] = resolvePath(instr.tokens[1]);
 			
 				if (isValidDir(instr.tokens[1]))
@@ -206,7 +205,7 @@ int main(){
 			}
 			
 			else 
-				execute(instr.tokens);
+				execute(instr.tokens);*/
 		}
 		
 		else if(strcmp(instr.tokens[0], "cd") == 0){	//scott
@@ -389,6 +388,9 @@ int main(){
 
 	return 0;
 }
+
+
+
 
 
 void openFile(char file[]){
