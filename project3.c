@@ -131,7 +131,7 @@ int main(){
 
 	fseek(imagefile, offset, SEEK_SET);
 	fread(&dir[0], 32, 16, imagefile);
-
+	
 	do {
 		printf("$ ");	
 		clearInstruction(&instr);
@@ -173,9 +173,11 @@ int main(){
 
 			int p;
 			int j;
+			int q = 0;
 			for(j = 1; j < 16; j=j+2){
-				for(p = 0; p < 12; p++)
+				for(p = 0; p < 12; p++){
 					printf("%c", dir[j].DIR_Name[p]);
+				}
 			printf("\n");	
 	
 			}
@@ -252,6 +254,36 @@ int main(){
 			}
 
 
+
+			int filereal = 0;
+			char temp[12];
+			char directory[16];
+			int p;
+			int j;
+			int z = 0;
+			for(j = 1; j < 16; j=j+2){
+				for(p = 0; p < 12; p++){
+					temp[p] = 0;
+					if(dir[j].DIR_Name[p] == ' ')
+						break;	
+					else
+						temp[p] = dir[j].DIR_Name[p];
+
+				}
+					if(strcmp(instr.tokens[1], temp) == 0)
+						filereal = 1;
+								
+			}
+
+			
+
+			//check if file exists
+			
+			if(filereal == 0)
+				printf("File does not exist.\n");
+
+
+
 			int filecheck = 0;
 			
 			//print error if file\inputitems[1] is already opened
@@ -263,10 +295,10 @@ int main(){
 				}
 
 
-			if(filecheck == 1)
-				printf("File is already opened.\n");
-			else
-				openFile(instr.tokens[1]);
+		//	if(filecheck == 1)
+		//		printf("File is already opened.\n");
+		//	else
+		//		openFile(instr.tokens[1]);
 
 
 		}
