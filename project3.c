@@ -50,12 +50,6 @@ void closeFile(char file[]);
 void makeDir(char directory[]);
 void creatFile(char file[]);
 
-
-int littleToBigEndian(unsigned int *address);
-
-
-
-
 unsigned int BPB_BytesPerSec;
 unsigned int BPB_SecPerClus;
 unsigned int BPB_RsvdSecCnt;
@@ -137,13 +131,6 @@ int main(){
 
 	fseek(imagefile, offset, SEEK_SET);
 	fread(&dir[0], 32, 16, imagefile);
-	
-
-
-
-	
-
-
 
 	do {
 		printf("$ ");	
