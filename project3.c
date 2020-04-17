@@ -45,8 +45,7 @@ int isExecutable(char* file);
 
 void execute(char** cmd);
 void parse(instruction* instr);
-void openFile(char file[]);
-void closeFile(char file[]);
+
 void makeDir(char directory[]);
 void creatFile(char file[]);
 
@@ -240,8 +239,7 @@ int main(){
 		}
 
 		else if(strcmp(instr.tokens[0],"open") == 0){	//taylor
-
-
+			
 			if( instr.tokens[1] == NULL || instr.tokens[2] == NULL){
 				printf("Missing parameters.\n");
 				continue;
@@ -301,8 +299,7 @@ int main(){
 
 
 //			else
-//				openFile(instr.tokens[1]);
-
+//				CHECK TAG AND SET ATTRIBUTES
 
 		}
 
@@ -313,8 +310,24 @@ int main(){
 				printf("Missing parameters.\n");
 				continue;
 			}
-			else
-				closeFile(instr.tokens[1]);
+
+			int opencheck = 0;
+			int i;
+			for(i = 0; i < 16; i++){
+				if(strcmp(instr.tokens[1], &openFileList[i]) == 0)
+				{
+					printf("File has been successfully closed.\n");
+					openFileList[i] = 0;
+					opencheck = 1;
+				}
+			}
+
+		
+			if(opencheck == 0)
+				printf("Error: File is not open.\n");
+////////////////////	//else
+				//set attributes
+
 		
 		}
 
@@ -409,53 +422,6 @@ int main(){
 	clearInstruction(&instr);
 
 	return 0;
-}
-
-
-
-
-
-void openFile(char file[]){
-
-
-//open a file named filename in the current working directory
-//	openfile = fopen(file, "r");
-
-//	if(openfile == NULL)
-//	{
-//		printf("Error: file does not exist.\n");
-//		return;
-//	}	
-//	else{
-		printf("Opened %s\n", file);
-		//openFileList[filelistspot] = *file;		
-		//filelistspot++;
-
-
-
-
-}
-
-
-void closeFile(char file[]){
-//print error if file is not opened/in the table
-	int filecheck = 0;
-	int i;
-	for(i = 0; i < 100; i++){
-		if(strcmp(file,&openFileList[i]) == 0)
-			filecheck = i;
-	}
-
-	if(filecheck == 0)
-		printf("File is not open.");
-		
-	else{
-	//close file named filename/inputitems[1]
-	//need to remove file entry from the open file table
-		strcpy(&openFileList[i], "");		
-		fclose(openfile);								
-	}		
-
 }
 
 
