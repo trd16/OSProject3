@@ -242,8 +242,7 @@ int main(){
 			}
 
 		else if(strcmp(instr.tokens[0], "mkdir") == 0){	//taylor
-			printf("mkdir selected\n");
-
+			
 			makeDir(instr.tokens[1]);	
 
 			}
@@ -468,11 +467,33 @@ int main(){
 
 void makeDir(char directory[]){
 //check directory does not already exist
+	int dirReal = 0;
+	char temp[12];
+	//char directory[16];
+	int p;
+	int j;
+	int z = 0;
+	for(j = 1; j < 16; j=j+2){
+		for(p = 0; p < 12; p++){
+			temp[p] = 0;
+			if(dir[j].DIR_Name[p] == ' ')
+				break;	
+			else
+				temp[p] = dir[j].DIR_Name[p];
+
+		}
+		if(strcmp(directory, temp) == 0 && dir[j].DIR_Attr == 16){
+			printf("Directory already exists.\n");
+
+			break;
+		}	
+								
+	}
+
+			
 	//create a new directory in the current working directory with the name dirname/inputitems[1]
 			
-//if it does exist print error
-	//printf("Directory already exists.\n");
-	
+
 
 }
 
