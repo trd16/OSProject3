@@ -196,12 +196,12 @@ int main(){
 			int j;
 			int q = 0;
 			for(j = 1; j < 16; j=j+2){
-				for(p = 0; p < 12; p++){
-					printf("%c", dir[j].DIR_Name[p]);
+				if(dir[j].DIR_Attr == 1 || dir[j].DIR_Attr == 16 || dir[j].DIR_Attr == 32){
+					for(p = 0; p < 12; p++){
+						printf("%c", dir[j].DIR_Name[p]);
+					}
+				printf("\n");
 				}
-			printf("\n");
-			printf("Directory Attribute: %x\n", dir[j].DIR_Attr);	
-			printf("Size: %d\n", dir[j].DIR_FileSize);
 			}
 
 			
@@ -306,9 +306,7 @@ int main(){
 				}
 			
 			}
-		
-
-		
+				
 
 			int filereal = 0;
 			char temp[12];
@@ -340,8 +338,7 @@ int main(){
 						strcpy(&openFileList[filelistspot],instr.tokens[1]);
 						filelistspot++;
 						break;
-					}	
-								
+					}							
 			}
 
 			
