@@ -181,15 +181,36 @@ int main(){
 		else if(strcmp(instr.tokens[0], "ls") == 0){	//thomas
 
 
-			/*if(instr.tokens[1] != NULL){
+			if(instr.tokens[1] != NULL){
 				//need to check if directory exists
-
 				//if not give error
 
-				//move to directory
-					//call cd function?
-			}*/
-			
+				int dircheck = 0;
+				char temp[12];
+				int a;
+				int b;
+				for(b = 1; b < 16; b=b+2){
+					for(a = 0; a < 12; a++){
+						temp[a] = 0;
+						if(dir[b].DIR_Name[a] == ' ')
+							break;	
+						else
+							temp[a] = dir[b].DIR_Name[a];
+
+					}
+					if(strcmp(instr.tokens[1], temp) == 0 && dir[b].DIR_Attr == 16){
+						dircheck = 1;
+						break;
+					}
+				}	
+
+				if(dircheck == 0)
+					printf("Directory does not exist.\n");
+				//else
+					//move to directory
+						//call cd function?		
+			}
+								
 
 
 			int p;
@@ -206,20 +227,6 @@ int main(){
 
 			
 
-			
-			
-
-	/*		if (instr.numTokens > 1) {
-				instr.tokens[1] = resolvePath(instr.tokens[1]);
-			
-				if (isValidDir(instr.tokens[1]))
-					execute(instr.tokens);
-				else
-					printf("Invalid directory\n");
-			}
-			
-			else 
-				execute(instr.tokens);*/
 		}
 		
 		else if(strcmp(instr.tokens[0], "cd") == 0){	//scott
