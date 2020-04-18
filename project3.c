@@ -234,18 +234,33 @@ int main(){
 		}
 
 		else if(strcmp(instr.tokens[0], "creat") == 0){	//taylor
-			printf("creat selected\n");
+			if(instr.tokens[2] != NULL){
+				printf("Too many arguments.\n");
+				continue;
+			}
+
+			if(instr.tokens[1] == NULL){
+				printf("Missing arguments.\n");
+				continue;
+			}
+			
 
 			creatFile(instr.tokens[1]);
-
-
-			}
+		}
 
 		else if(strcmp(instr.tokens[0], "mkdir") == 0){	//taylor
-			
-			makeDir(instr.tokens[1]);	
-
+			if(instr.tokens[2] != NULL){
+				printf("Too many arguments.\n");
+				continue;
 			}
+			
+			if(instr.tokens[1] == NULL){
+				printf("Missing arguments.\n");
+				continue;
+			}
+	
+			makeDir(instr.tokens[1]);	
+		}
 
 		else if(strcmp(instr.tokens[0], "mv") == 0){	//scott
 			printf("mv selected\n");
@@ -266,10 +281,11 @@ int main(){
 		else if(strcmp(instr.tokens[0],"open") == 0){	//taylor
 			
 			if( instr.tokens[1] == NULL || instr.tokens[2] == NULL){
-				printf("Missing parameters.\n");
+				printf("Missing arguments.\n");
 				continue;
 			}
 			
+
 			//print error if invalid mode is used
 			if(strcmp(instr.tokens[2], "r") != 0 && strcmp(instr.tokens[2],"w") != 0 && strcmp(instr.tokens[2], "rw") != 0 && strcmp(instr.tokens[2], "wr") != 0){
 				printf("Invalid mode.\n");
@@ -467,9 +483,7 @@ int main(){
 
 void makeDir(char directory[]){
 //check directory does not already exist
-	int dirReal = 0;
 	char temp[12];
-	//char directory[16];
 	int p;
 	int j;
 	int z = 0;
@@ -482,16 +496,18 @@ void makeDir(char directory[]){
 				temp[p] = dir[j].DIR_Name[p];
 
 		}
-		if(strcmp(directory, temp) == 0 && dir[j].DIR_Attr == 16){
-			printf("Directory already exists.\n");
-
+		if(strcmp(directory, temp) == 0){
+			if(dir[j].DIR_Attr == 16)
+				printf("Directory already exists.\n");
+			else
+				printf("File already exists with same name.\n");
 			break;
 		}	
 								
 	}
 
 			
-	//create a new directory in the current working directory with the name dirname/inputitems[1]
+//create a new directory in the current working directory with the name dirname/inputitems[1]
 			
 
 
@@ -500,6 +516,40 @@ void makeDir(char directory[]){
 
 void creatFile(char file[]){
 //check file does not already exist
+	char temp[12];
+	int p;
+	int j;
+	int z = 0;
+	for(j = 1; j < 16; j=j+2){
+		for(p = 0; p < 12; p++){
+			temp[p] = 0;
+			if(dir[j].DIR_Name[p] == ' ')
+				break;	
+			else
+				temp[p] = dir[j].DIR_Name[p];
+
+		}
+		if(strcmp(file, temp) == 0){
+			if(dir[j].DIR_Attr == 32)
+				printf("File already exists.\n");
+			else
+				printf("Directory already exists with same name.\n");
+			break;
+		}	
+								
+	}
+
+
+
+
+
+
+
+
+
+
+
+
 	//creates a file in the current working directory with a size of 0 bytes and with a name of filename/inputitems[1]
 			
 //if it does exist print error
