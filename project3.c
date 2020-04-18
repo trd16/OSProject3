@@ -63,6 +63,9 @@ unsigned int curDir;
 unsigned int FirstDataSector;
 unsigned int FirstSectorofCluster;
 unsigned int offset;
+unsigned int curDirClusterAddr;
+unsigned int rootDirClusterAddr;
+
 
 FILE *imagefile;
 FILE *openfile;
@@ -130,6 +133,13 @@ int main(){
 
 	fseek(imagefile, offset, SEEK_SET);
 	fread(&dir[0], 32, 16, imagefile);
+
+
+	rootDirClusterAddr = BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec;
+	rootDirClusterAddr = rootDirClusterAddr + (BPB_RsvdSecCnt * BPB_BytesPerSec);
+	curDirClusterAddr = rootDirClusterAddr;
+
+
 	
 	do {
 		printf("$ ");	
@@ -170,6 +180,18 @@ int main(){
 	
 		else if(strcmp(instr.tokens[0], "ls") == 0){	//thomas
 
+
+			/*if(instr.tokens[1] != NULL){
+				//need to check if directory exists
+
+				//if not give error
+
+				//move to directory
+					//call cd function?
+			}*/
+			
+
+
 			int p;
 			int j;
 			int q = 0;
@@ -177,11 +199,15 @@ int main(){
 				for(p = 0; p < 12; p++){
 					printf("%c", dir[j].DIR_Name[p]);
 				}
-			printf("\n");	
-	
+			printf("\n");
+			printf("Directory Attribute: %x\n", dir[j].DIR_Attr);	
+			printf("Size: %d\n", dir[j].DIR_FileSize);
 			}
 
+			
 
+			
+			
 
 	/*		if (instr.numTokens > 1) {
 				instr.tokens[1] = resolvePath(instr.tokens[1]);
@@ -254,7 +280,8 @@ int main(){
 			int filecheck = 0;
 			
 			//print error if file\inputitems[1] is already opened
-		
+			//print error if it is a directory
+
 			int i;
 			for(i = 0; i < 16; i++){
 				if(strcmp(instr.tokens[1], &openFileList[i]) == 0)
@@ -262,7 +289,10 @@ int main(){
 					printf("File is already opened.\n");
 					break;
 				}
+			
 			}
+		
+
 		
 
 			int filereal = 0;
@@ -283,6 +313,15 @@ int main(){
 					if(strcmp(instr.tokens[1], temp) == 0){
 						filereal = 1;
 						
+						//check if file entered and give error if not
+						if(dir[j].DIR_Attr != 32)
+						{
+							printf("Enter a file, not directory.\n");
+							break;
+						}
+
+
+
 						strcpy(&openFileList[filelistspot],instr.tokens[1]);
 						filelistspot++;
 						break;
@@ -419,6 +458,8 @@ int main(){
 
 	//exit
 	//free memory
+	fclose(imagefile);
+	imagefile = NULL;
 	clearInstruction(&instr);
 
 	return 0;
