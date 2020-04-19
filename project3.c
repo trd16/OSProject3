@@ -135,11 +135,12 @@ int main(){
 	fread(&dir[0], 32, 16, imagefile);
 
 
-	rootDirClusterAddr = BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec;
-	rootDirClusterAddr = rootDirClusterAddr + (BPB_RsvdSecCnt * BPB_BytesPerSec);
+	rootDirClusterAddr = BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec + (BPB_RsvdSecCnt * BPB_BytesPerSec);
 	curDirClusterAddr = rootDirClusterAddr;
-
-
+	
+		
+	printf("Root Cluster Check: %x\n", curDirClusterAddr);
+	
 	
 	do {
 		printf("$ ");	
@@ -232,9 +233,13 @@ int main(){
 		else if(strcmp(instr.tokens[0], "cd") == 0){	//scott
 			printf("cd selected\n");
 
+
+			//////// ***** you'll be changing curDirClusterAddr to where the dir starts) ////////////////////////////////////
+
 			//check that dirname/inputitems[1] exists and is a directory
 				//change current working directory to dirname
 					//code will need to maintain current working directory state
+
 			
 			//if not print error
 				//fprint("Directory does not exist.\n");
