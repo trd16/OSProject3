@@ -140,6 +140,8 @@ int main(){
 	
 		
 	printf("Root Cluster Check: %x\n", curDirClusterAddr);
+		//printf("offset: %x\n", offset);
+
 	
 	
 	do {
@@ -231,8 +233,40 @@ int main(){
 		}
 		
 		else if(strcmp(instr.tokens[0], "cd") == 0){	//scott
-			printf("cd selected\n");
+			//printf("cd selected\n");
 
+			int dircheck = 0;
+				char temp[12];
+				int a;
+				int b;
+				for(b = 1; b < 16; b=b+2){
+					for(a = 0; a < 12; a++){
+						temp[a] = 0;
+						if(dir[b].DIR_Name[a] == ' ')
+							break;	
+						else
+							temp[a] = dir[b].DIR_Name[a];
+
+					}
+					if(strcmp(instr.tokens[1], temp) == 0 && dir[b].DIR_Attr == 16){
+						dircheck = 1;
+						break;
+					}
+				}	
+				
+				if(dircheck == 1)
+				{
+					//printf("Addr: %d", curDirClusterAddr);
+
+					//curDirClusterAddr = (( (int32_t) dir[b].DIR_FstClusLO - 2) * BPB_BytesPerSec) + (BPB_BytesPerSec * BPB_RsvdSecCnt) + (BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec);
+
+					printf("It's a directory\n");
+				}
+				else
+				{
+					printf("Directory does not exist.\n");
+				}
+		
 
 			//////// ***** you'll be changing curDirClusterAddr to where the dir starts) ////////////////////////////////////
 
