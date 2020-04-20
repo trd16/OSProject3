@@ -36,16 +36,10 @@ void printTokens(instruction* instr_ptr);
 char userinput[100];
 char inputitems[10][10];
 
-int numberOfDirectories(char* path);
-char* expandPath(char* path);
-char* resolvePath(char* path);
-int isValidDir(char* path);
-int isValidFile(char* path);
-int isExecutable(char* file);
-
-void execute(char** cmd);
 void parse(instruction* instr);
-
+void listContents(char* directory);
+int getOffset(int currentDir);
+void size(char* file);
 void makeDir(char directory[]);
 void creatFile(char file[]);
 
@@ -83,7 +77,6 @@ struct __attribute__((__packed__)) DirectoryEntry{
 	unsigned char DIR_WrtDate[2];
 	unsigned char DIR_FstClusLO[2];
 	unsigned char DIR_FileSize[4];
-
 };
 
 struct DirectoryEntry dir[16];
@@ -94,7 +87,6 @@ char openFileList[100];
 int filelistspot = 0;
 
 int main(){
-
 	imagefile = fopen("fat32.img", "r");
 	char* command = "start";
 	instruction instr;
@@ -117,16 +109,12 @@ int main(){
 
 	fseek(imagefile, 44, SEEK_SET);
 	fread(&BPB_RootClus, 4, 1, imagefile);
-
 	
 	FirstDataSector = (BPB_NumFATs * BPB_FATSz32) + BPB_RsvdSecCnt;
 	FirstSectorofCluster = FirstDataSector + ((BPB_RootClus - 2) * BPB_SecPerClus);
-
-
-	offset = BPB_RootClus - 2;
-	offset = offset * BPB_BytesPerSec;
-	offset+= BPB_BytesPerSec * BPB_RsvdSecCnt;
-	offset+= BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec;
+	
+	curDir = BPB_RootClus;
+	offset = getOffset(curDir);
 
 	char rootDir[512];
 	char dirNames[16];
@@ -134,102 +122,61 @@ int main(){
 	fseek(imagefile, offset, SEEK_SET);
 	fread(&dir[0], 32, 16, imagefile);
 
-
 	rootDirClusterAddr = BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec + (BPB_RsvdSecCnt * BPB_BytesPerSec);
 	curDirClusterAddr = rootDirClusterAddr;
 	
-		
 	printf("Root Cluster Check: %x\n", curDirClusterAddr);
-		//printf("offset: %x\n", offset);
+	//printf("offset: %x\n", offset);
 
-	
-	
 	do {
 		printf("$ ");	
 		clearInstruction(&instr);
 		parse(&instr);
 	
 		if(strcmp(instr.tokens[0], "info") == 0){	//thomas
-			printf("Info selected\n");
+			if (instr.numTokens != 1) {
+				printf("Error: No arguments expected\n");
+				continue;
+			}
 			
 			//parse the boot sector. print the field name and corresponding values for each entry, one per line
-				//bytes per sector
-				printf("Bytes per Sector: %d\n", BPB_BytesPerSec);
-				//sectors per cluster
-				printf("Sectors Per Cluster: %d\n", BPB_SecPerClus);
-				//reserved sector count
-				printf("Reserved Sector Count: %d\n", BPB_RsvdSecCnt);
-				//number of FATs
-				printf("Number of FATs: %d\n", BPB_NumFATs);
-				//total sectors 
-				printf("Total Sectors: %d\n", BPB_TotSec32);
-				//FATsize
-				printf("FATsize: %d\n", BPB_FATSz32);
-				//root cluster
-				printf("Root Cluster: %d\n", BPB_RootClus);
+			//bytes per sector
+			printf("Bytes per Sector: %d\n", BPB_BytesPerSec);
+			//sectors per cluster
+			printf("Sectors Per Cluster: %d\n", BPB_SecPerClus);
+			//reserved sector count
+			printf("Reserved Sector Count: %d\n", BPB_RsvdSecCnt);
+			//number of FATs
+			printf("Number of FATs: %d\n", BPB_NumFATs);
+			//total sectors 
+			printf("Total Sectors: %d\n", BPB_TotSec32);
+			//FATsize
+			printf("FATsize: %d\n", BPB_FATSz32);
+			//root cluster
+			printf("Root Cluster: %d\n", BPB_RootClus);
 		}
 
 		else if(strcmp(instr.tokens[0], "size") == 0){	//thomas
-			printf("Size selected\n");
+			if (instr.numTokens != 2) {
+				printf("Error: Incorrect number of arguments\n");
+				continue;
+			}
 			
-			//check file name in inputitem[1] exists
-				//print size of file in current working directory in bytes
-			
-			//if not print error
-				//fprint("File does not exist.\n");
-
-			
+			size(instr.tokens[1]);
 		}
 	
+		//prints contents of curDir
+		//if a directory is listed, cd directory, print directory, then change back to previous
 		else if(strcmp(instr.tokens[0], "ls") == 0){	//thomas
-
-
-			if(instr.tokens[1] != NULL){
-				//need to check if directory exists
-				//if not give error
-
-				int dircheck = 0;
-				char temp[12];
-				int a;
-				int b;
-				for(b = 1; b < 16; b=b+2){
-					for(a = 0; a < 12; a++){
-						temp[a] = 0;
-						if(dir[b].DIR_Name[a] == ' ')
-							break;	
-						else
-							temp[a] = dir[b].DIR_Name[a];
-
-					}
-					if(strcmp(instr.tokens[1], temp) == 0 && dir[b].DIR_Attr == 16){
-						dircheck = 1;
-						break;
-					}
-				}	
-
-				if(dircheck == 0)
-					printf("Directory does not exist.\n");
-				//else
-					//move to directory
-						//call cd function?		
+			if (instr.numTokens > 2) {
+				printf("Error: Incorrect number of arguments\n");
+				continue;
 			}
-								
-
-
-			int p;
-			int j;
-			int q = 0;
-			for(j = 1; j < 16; j=j+2){
-				if(dir[j].DIR_Attr == 1 || dir[j].DIR_Attr == 16 || dir[j].DIR_Attr == 32){
-					for(p = 0; p < 12; p++){
-						printf("%c", dir[j].DIR_Name[p]);
-					}
-				printf("\n");
-				}
-			}
-
 			
-
+			if(instr.tokens[1] != NULL)
+				listContents(instr.tokens[1]);
+			else 
+				listContents(NULL);
 		}
 		
 		else if(strcmp(instr.tokens[0], "cd") == 0){	//scott
@@ -290,7 +237,6 @@ int main(){
 				continue;
 			}
 			
-
 			creatFile(instr.tokens[1]);
 		}
 
@@ -450,7 +396,10 @@ int main(){
 		}
 
 		else if(strcmp(instr.tokens[0], "write") == 0){	//thomas
-			printf("write selected\n");
+			if (instr.numTokens != 5) {
+				printf("Error: Incorrect number of arguments\n");
+				continue;
+			}
 		
 			//print error if filename/inputitems[1] does not exist
 				//printf("File does not exist.\n");
@@ -474,7 +423,10 @@ int main(){
 		}
 
 		else if(strcmp(instr.tokens[0], "rm") == 0){	//thomas
-			printf("rm selected\n");
+			if (instr.numTokens != 2) {
+				printf("Error: Incorrect number of arguments\n");
+				continue;
+			}
 
 			//print error if filename/inputitems[1] does not exist
 				//printf("File does not exist.\n");
@@ -505,7 +457,6 @@ int main(){
 		else if(strcmp(instr.tokens[0], "exit") == 0){
 			//return 0;
 			break;
-		
 		}
 
 		else{
@@ -692,190 +643,118 @@ void clearInstruction(instruction* instr_ptr)
 	instr_ptr->numTokens = 0;
 }
 
-int numberOfDirectories(char* path) {
-	int i, num = 0;
-	for (i = 0; i < strlen(path); ++i) {
-		if (path[i] == '/')
-			++num;
-	}
-	return num;
+int getOffset(int currentDir) {
+	if (currentDir == 0)
+		currentDir = 2;
+	
+	int dirOffset = currentDir - 2;
+	dirOffset = dirOffset * BPB_BytesPerSec;
+	dirOffset += BPB_BytesPerSec * BPB_RsvdSecCnt;
+	dirOffset += BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec;
+	
+	return dirOffset;
 }
 
-///expands path to absolute path
-///returns NULL if ".." goes out of bounds
-char* expandPath(char* path) {
-	char* newPath;
+///prints size of file in bytes
+void size(char* file) {
+	//get offset and read from directory
+	offset = getOffset(curDir);
+	fseek(imagefile, offset, SEEK_SET);
+	fread(&dir[0], 32, 16, imagefile);
 	
-	//set ~ to home directory
-	if (path[0] == '~') {
-		int len = strlen(path) + strlen(getenv("HOME"));
-		newPath = (char*)malloc(len * sizeof(char));
-		strcpy(newPath, getenv("HOME"));
-		
-		//get rest of path
-		int i, j = strlen(newPath);
-		for (i = 1; i < strlen(path); ++i)
-			newPath[j++] = path[i++];
-		newPath[j] = '\0';
+	int dircheck = 0;
+	char temp[12];
+	int a;
+	int b;
+	//check for file
+	for(b = 1; b < 16; b=b+2){
+		for(a = 0; a < 12; a++){
+			temp[a] = 0;
+			if(dir[b].DIR_Name[a] == ' ')
+				break;	
+			else
+				temp[a] = dir[b].DIR_Name[a];
+		}
+		//if file name matches check that it is not a directory
+		if(strcmp(file, temp) == 0 && dir[b].DIR_Attr != 16){
+			dircheck = 1;
+			break;
+		}
+	}	
+	//print error if directory or not exist
+	if (!dircheck) {
+		printf("File %s does not exist\n", file);
 	}
-	//relative path
-	else if (path[0] != '/') {
-		int len = strlen(getenv("PWD")) + strlen(path);
-		newPath = (char*)malloc((len + 2) * sizeof(char));
-		strcpy(newPath, getenv("PWD"));
-		strcat(newPath, "/");
-		strcat(newPath, path);
-	}
-	//absolute path
-	else
-		strcpy(newPath, path);
+	printf("%d bytes\n", dir[b].DIR_FileSize);
+}
 
-	int numDirs = numberOfDirectories(newPath);
-	if (numDirs == 0) {
-		free(newPath);
-		return NULL;
-	}
+///ls
+///prints contents of directory
+void listContents(char* directory) {
+	//create temp variable to revert back to if cd is called
+	int tempCurDir = curDir;
 	
-	char** pathArray = (char**)malloc(numDirs * sizeof(char*));
-	int i;
-	for (i = 0; i < numDirs; ++i)
-		pathArray[i] = (char*)malloc(strlen(newPath) * sizeof(char));
-	
-	i = 0;
-	//split path into array
-	char* ptr = strtok(newPath, "/");
-	while (ptr != NULL) {
-		//decrement i on ".."
-		if (strcmp(ptr, "..") == 0) {
-			--i;
-			//invalid path, deallocate memory and return NULL
-			if (i < 0) {
-				free(newPath);
-				
-				int j;
-				for (j = 0; j < numDirs; ++j)
-					free(pathArray[j]);
-				free(pathArray);
-				
-				return NULL;
+	offset = getOffset(curDir);
+	fseek(imagefile, offset, SEEK_SET);
+	fread(&dir[0], 32, 16, imagefile);
+
+	if(directory != NULL){
+		//need to check if directory exists
+		//if not give error
+
+		int dircheck = 0;
+		char temp[12];
+		int a;
+		int b;
+		for(b = 1; b < 16; b=b+2){
+			for(a = 0; a < 12; a++){
+				temp[a] = 0;
+				if(dir[b].DIR_Name[a] == ' ')
+					break;	
+				else
+					temp[a] = dir[b].DIR_Name[a];
+
 			}
-		}
-		//only add directory to array if not . or ..
-		else if (strcmp(ptr, ".") != 0) 
-			strcpy(pathArray[i++], ptr);
+			if(strcmp(directory, temp) == 0 && dir[b].DIR_Attr == 16){
+				dircheck = 1;
+				break;
+			}
+		}	
 		
-		ptr = strtok(NULL, "/");
+		//do nothing for current directory
+		if (strcmp(directory, ".") == 0);
+		//read parent directory
+		else if (strcmp(directory, "..") == 0) {
+			//cd(..)
+		}
+		//directory does not exist
+		else if(dircheck == 0) {
+			printf("Directory %s does not exist.\n", directory);
+			return;
+		}
+		//directory found, cd 
+		else {
+			//cd(dir)
+		}
 	}
-	
-	strcpy(newPath, "/");
+
+	int p;
 	int j;
-	for (j = 0; j < numDirs; ++j) {
-		if (j < i) {
-			//add directory to newPath
-			if (j != 0)
-				strcat(newPath, "/");
-			strcat(newPath, pathArray[j]);
+	int q = 0;
+	for(j = 1; j < 16; j=j+2){
+		if(dir[j].DIR_Attr == 1 || dir[j].DIR_Attr == 16 || dir[j].DIR_Attr == 32){
+			for(p = 0; p < 12; p++){
+				printf("%c", dir[j].DIR_Name[p]);
+			}
+		printf("\n");
 		}
-		free(pathArray[j]);
 	}
-	free(pathArray);
-	
-	return newPath;
+	printf(".\n");
+	if (curDir != BPB_RootClus)
+		printf("..\n");
+	//change back to current directory
+	curDir = tempCurDir;
 }
 
-///expands path of executables to absolute path
-///searches in PWD and all of PATH
-///return null if not found
-char* resolvePath(char* path) {
-	//absoulte path
-	if ( path[0] == '/') {
-		if (isValidFile(path))
-			return path;
-		return NULL;
-	}
-	
-	char* newPath = (char*)malloc(256 * sizeof(char));
-	
-	//test for "./path" first
-	strcpy(newPath, "./");
-	strcat(newPath, path);
-	
-	char* ptr = expandPath(newPath);
-	if (ptr == NULL) {
-		free(ptr);
-		free(newPath);
-		return NULL;
-	}
-	strcpy(newPath, ptr);
-	free(ptr);
-	
-	if (isValidFile(newPath))
-		return newPath;
-	
-	char PATHenv[1024];
-	strcpy(PATHenv, getenv("PATH"));
-	
-	//split PATH by ":" and test each variable
-	ptr = strtok(PATHenv, ":");
-	while (ptr != NULL) {
-		strcpy(newPath, ptr);
-		strcat(newPath, "/");
-		strcat(newPath, path);
-		
-		if (isValidFile(newPath))
-			return newPath;
-		
-		ptr = strtok(NULL, ":");
-	}
-	
-	//not found
-	free(newPath);
-	return NULL;
-}
-
-int isValidDir(char* path) {
-	DIR* dir = opendir(path);
-	if (dir)
-	{
-		closedir(dir);
-		return TRUE;
-	}
-	return FALSE;
-}
-
-int isValidFile(char* path) {
-	if (access(path, F_OK) != -1)
-		return TRUE;
-	return FALSE;
-}
-
-int isExecutable(char* file) {
-	if (access(file, X_OK) != -1)
-		return TRUE;
-	return FALSE;
-}
-
-void execute(char** cmd) {
-	int status;
-	pid_t pid = fork();
-	if(pid == -1)
-	{
-		//error
-		exit(1);
-	}
-	else if(pid == 0)
-	{
-		//child
-		execv(resolvePath(cmd[0]), cmd);
-		printf("Problem executing %s\n", cmd[0]);
-		exit(1);
-	}
-	else
-	{
-		//parent
-		child_pids[child_nb++] = pid;
-		waitpid(pid,&status, 0);
-	}
-}
-
+// int removeEntry(
 
