@@ -37,11 +37,14 @@ char userinput[100];
 char inputitems[10][10];
 
 void parse(instruction* instr);
-void listContents(char* directory);
 int getOffset(int currentDir);
+
+void listContents(char* directory);
+
 void size(char* file);
 void makeDir(char directory[]);
 void creatFile(char file[]);
+void write(char* file, int offset, int size, char* buffer);
 
 unsigned int BPB_BytesPerSec;
 unsigned int BPB_SecPerClus;
@@ -93,7 +96,6 @@ int main(){
 	instr.tokens = NULL;
 	instr.numTokens = 0;
 
-	
 	fseek(imagefile, 3, SEEK_SET);
 	fread(&BS_OEMName, 8, 1, imagefile);
 	
@@ -113,12 +115,14 @@ int main(){
 	FirstDataSector = (BPB_NumFATs * BPB_FATSz32) + BPB_RsvdSecCnt;
 	FirstSectorofCluster = FirstDataSector + ((BPB_RootClus - 2) * BPB_SecPerClus);
 	
+	//set current directory to root
 	curDir = BPB_RootClus;
 	offset = getOffset(curDir);
 
 	char rootDir[512];
 	char dirNames[16];
 
+	//read root directory
 	fseek(imagefile, offset, SEEK_SET);
 	fread(&dir[0], 32, 16, imagefile);
 
@@ -183,39 +187,38 @@ int main(){
 			//printf("cd selected\n");
 
 			int dircheck = 0;
-				char temp[12];
-				int a;
-				int b;
-				for(b = 1; b < 16; b=b+2){
-					for(a = 0; a < 12; a++){
-						temp[a] = 0;
-						if(dir[b].DIR_Name[a] == ' ')
-							break;	
-						else
-							temp[a] = dir[b].DIR_Name[a];
+			char temp[12];
+			int a;
+			int b;
+			for(b = 1; b < 16; b=b+2){
+				for(a = 0; a < 12; a++){
+					temp[a] = 0;
+					if(dir[b].DIR_Name[a] == ' ')
+						break;	
+					else
+						temp[a] = dir[b].DIR_Name[a];
 
-					}
-					if(strcmp(instr.tokens[1], temp) == 0 && dir[b].DIR_Attr == 16){
-						dircheck = 1;
-						break;
-					}
-				}	
-				
-				if(dircheck == 1)
-				{
-					//printf("Addr: %d", curDirClusterAddr);
-
-					//curDirClusterAddr = (( (int32_t) dir[b].DIR_FstClusLO - 2) * BPB_BytesPerSec) + (BPB_BytesPerSec * BPB_RsvdSecCnt) + (BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec);
-
-					printf("It's a directory\n");
 				}
-				else
-				{
-					printf("Directory does not exist.\n");
+				if(strcmp(instr.tokens[1], temp) == 0 && dir[b].DIR_Attr == 16){
+					dircheck = 1;
+					break;
 				}
+			}	
+			
+			if(dircheck == 1)
+			{
+				//printf("Addr: %d", curDirClusterAddr);
+
+				//curDirClusterAddr = (( (int32_t) dir[b].DIR_FstClusLO - 2) * BPB_BytesPerSec) + (BPB_BytesPerSec * BPB_RsvdSecCnt) + (BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec);
+
+				printf("It's a directory\n");
+			}
+			else
+			{
+				printf("Directory does not exist.\n");
+			}
 		
-
-			//////// ***** you'll be changing curDirClusterAddr to where the dir starts) ////////////////////////////////////
+			//////// ***** you'll be changing curDirClusterAddr and curDir to where the dir starts) ////////////////////////////////////
 
 			//check that dirname/inputitems[1] exists and is a directory
 				//change current working directory to dirname
@@ -400,6 +403,8 @@ int main(){
 				printf("Error: Incorrect number of arguments\n");
 				continue;
 			}
+			
+			write(&instr);
 		
 			//print error if filename/inputitems[1] does not exist
 				//printf("File does not exist.\n");
@@ -407,7 +412,7 @@ int main(){
 			//print error if filename is a directory
 				//printf("Must be file to read.\n");
 
-			//print error if file is not opened for reading
+			//print error if file is not opened for writing
 				//printf("File is not open.\n");
 
 			//print error if offset\inputitems[2] is larger than the size of the file
@@ -507,7 +512,6 @@ void makeDir(char directory[]){
 
 }
 
-
 void creatFile(char file[]){
 //check file does not already exist
 	char temp[12];
@@ -532,27 +536,11 @@ void creatFile(char file[]){
 		}	
 								
 	}
-
-
-
-
-
-
-
-
-
-
-
-
 	//creates a file in the current working directory with a size of 0 bytes and with a name of filename/inputitems[1]
 			
-//if it does exist print error
+	//if it does exist print error
 	//fprint("File already exists.\n");
-
-
-
 }
-
 
 ///parses user input
 ///places tokens inside of instruction pointer passed
@@ -631,8 +619,7 @@ void addNull(instruction* instr_ptr)
 	instr_ptr->numTokens++;
 }
 
-void clearInstruction(instruction* instr_ptr)
-{
+void clearInstruction(instruction* instr_ptr) {
 	int i;
 	for (i = 0; i < instr_ptr->numTokens; i++)
 		free(instr_ptr->tokens[i]);
@@ -643,6 +630,7 @@ void clearInstruction(instruction* instr_ptr)
 	instr_ptr->numTokens = 0;
 }
 
+//returns offset of current directory
 int getOffset(int currentDir) {
 	if (currentDir == 0)
 		currentDir = 2;
@@ -756,5 +744,66 @@ void listContents(char* directory) {
 	curDir = tempCurDir;
 }
 
-// int removeEntry(
+void removeEntry(char* file) {
+	offset = getOffset(curDir);
+	fseek(imagefile, offset, SEEK_SET);
+	fread(&dir[0], 32, 16, imagefile);
+	
+	int dircheck = 0;
+	char temp[12];
+	int a;
+	int b;
+	for(b = 1; b < 16; b=b+2){
+		for(a = 0; a < 12; a++){
+			temp[a] = 0;
+			if(dir[b].DIR_Name[a] == ' ')
+				break;	
+			else
+				temp[a] = dir[b].DIR_Name[a];
 
+		}
+		if(strcmp(file, temp) == 0 && dir[b].DIR_Attr != 16){
+			dircheck = 1;
+			break;
+		}
+	}	
+	
+	if (!dircheck) {
+		printf("Error: File %s does not exist");
+		return;
+	}
+}
+
+void write(char* file, int fileOffset, int size, char* buffer) {
+	offset = getOffset(curDir);
+	fseek(imagefile, offset, SEEK_SET);
+	fread(&dir[0], 32, 16, imagefile);
+	
+	int dircheck = 0;
+	char temp[12];
+	int a;
+	int b;
+	for(b = 1; b < 16; b=b+2){
+		for(a = 0; a < 12; a++){
+			temp[a] = 0;
+			if(dir[b].DIR_Name[a] == ' ')
+				break;	
+			else
+				temp[a] = dir[b].DIR_Name[a];
+
+		}
+		if(strcmp(file, temp) == 0 && dir[b].DIR_Attr != 16){
+			dircheck = 1;
+			break;
+		}
+	}	
+	
+	if (!dircheck) {
+		printf("Error: File %s does not exist");
+		return;
+	}
+	
+	if (fileOffset + size > dir[b].DIR_FileSize) {
+		
+	}
+}
