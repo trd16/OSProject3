@@ -44,7 +44,7 @@ void listContents(char* directory);
 void size(char* file);
 void makeDir(char directory[]);
 void creatFile(char file[]);
-void write(char* file, int offset, int size, char* buffer);
+void writeFile(char* file, int offset, int size, char* buffer);
 
 unsigned int BPB_BytesPerSec;
 unsigned int BPB_SecPerClus;
@@ -87,9 +87,10 @@ struct DirectoryEntry dir[16];
 char openFileList[100];
 
 				
-int filelistspot = 0;
 
 int main(){
+	int filelistspot = 0;
+
 	imagefile = fopen("fat32.img", "r");
 	char* command = "start";
 	instruction instr;
@@ -293,7 +294,7 @@ int main(){
 			//print error if it is a directory
 
 			int i;
-			for(i = 0; i < 16; i++){
+			for(i = 0; i < 100; i++){
 				if(strcmp(instr.tokens[1], &openFileList[i]) == 0)
 				{
 					printf("File is already opened.\n");
@@ -322,7 +323,7 @@ int main(){
 						filereal = 1;
 						
 						//check if file entered and give error if not
-						if(dir[j].DIR_Attr != 32)
+						if(dir[j].DIR_Attr == 16)
 						{
 							printf("Enter a file, not directory.\n");
 							break;
@@ -330,8 +331,6 @@ int main(){
 
 
 
-						strcpy(&openFileList[filelistspot],instr.tokens[1]);
-						filelistspot++;
 						break;
 					}							
 			}
@@ -344,13 +343,17 @@ int main(){
 				printf("File does not exist.\n");
 
 
-//			else
-//				CHECK TAG AND SET ATTRIBUTES
+			else{
+				if(strcmp(instr.tokens[2],"r") == 0)
+					dir[filereal].DIR_Attr = 1;
+			}
+
+		strcpy(&openFileList[filelistspot],instr.tokens[1]);
+		filelistspot= filelistspot + 10;
 
 		}
 
 		else if(strcmp(instr.tokens[0], "close") == 0){		//taylor
-			printf("close selected\n");
 
 			if( instr.tokens[1] == NULL){
 				printf("Missing parameters.\n");
@@ -359,21 +362,38 @@ int main(){
 
 			int opencheck = 0;
 			int i;
-			for(i = 0; i < 16; i++){
+			for(i = 0; i < 100; i++){
 				if(strcmp(instr.tokens[1], &openFileList[i]) == 0)
 				{
-					printf("File has been successfully closed.\n");
-					openFileList[i] = 0;
 					opencheck = 1;
+					printf("File has been successfully closed.\n");
+					strcpy(&openFileList[i],"0");
 				}
 			}
 
 		
-			if(opencheck == 0)
+			if(opencheck == 0){
 				printf("Error: File is not open.\n");
-////////////////////	//else
-				//set attributes
+				continue;
+			}
 
+			//set attribute
+			char temp[12];
+			int p;
+			int j;
+			for(j = 1; j < 16; j=j+2){
+				for(p=0; p < 12;p++){
+					temp[p] = 0;
+					if(dir[j].DIR_Name[p] == ' ')
+						break;
+					else
+						temp[p] = dir[j].DIR_Name[p];
+				}
+					if(strcmp(instr.tokens[1], temp) == 0){
+						dir[j].DIR_Attr = 32;
+						break;
+					}
+			}
 		
 		}
 
@@ -403,8 +423,8 @@ int main(){
 				printf("Error: Incorrect number of arguments\n");
 				continue;
 			}
-			
-			write(&instr);
+				
+			//writeFile(&instr);
 		
 			//print error if filename/inputitems[1] does not exist
 				//printf("File does not exist.\n");
@@ -774,7 +794,7 @@ void removeEntry(char* file) {
 	}
 }
 
-void write(char* file, int fileOffset, int size, char* buffer) {
+void writeFile(char* file, int fileOffset, int size, char* buffer) {
 	offset = getOffset(curDir);
 	fseek(imagefile, offset, SEEK_SET);
 	fread(&dir[0], 32, 16, imagefile);
@@ -803,7 +823,7 @@ void write(char* file, int fileOffset, int size, char* buffer) {
 		return;
 	}
 	
-	if (fileOffset + size > dir[b].DIR_FileSize) {
+	/*if (fileOffset + size > dir[b].DIR_FileSize) {
 		
-	}
+	}*/
 }
