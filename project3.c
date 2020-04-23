@@ -130,7 +130,7 @@ int main(){
 	rootDirClusterAddr = BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec + (BPB_RsvdSecCnt * BPB_BytesPerSec);
 	curDirClusterAddr = rootDirClusterAddr;
 	
-	printf("Root Cluster Check: %x\n", curDirClusterAddr);
+	//printf("Root Cluster Check: %x\n", curDirClusterAddr);
 	//printf("offset: %x\n", offset);
 
 	do {
@@ -398,19 +398,76 @@ int main(){
 		}
 
 		else if(strcmp(instr.tokens[0], "read") == 0){	//scott
-			printf("read selected");
+			//check params are all there
+			if( instr.tokens[3] == NULL || instr.tokens[2] == NULL || instr.tokens[1] == NULL){
+				printf("Missing parameters.\n");
+				continue;
+			}
 
-			//print error if filename/inputitems[1] does not exist
-				//printf("File does not exist.\n");
+			int filereal = 0;
+			char temp[12];
+			char directory[16];
+			int p;
+			int j;
+			int z = 0;
+			for(j = 1; j < 16; j=j+2){
+				for(p = 0; p < 12; p++){
+					temp[p] = 0;
+					if(dir[j].DIR_Name[p] == ' ')
+						break;	
+					else
+						temp[p] = dir[j].DIR_Name[p];
 
-			//print error if filename is a directory
-				//printf("Must be file to read.\n");
+				}
+					if(strcmp(instr.tokens[1], temp) == 0){
+						
+						//check if file entered and give error if not
+						if(dir[j].DIR_Attr == 16)
+						{
+							filereal = 2;
+							printf("Enter a file, not directory.\n");
+							break;
+						}
 
-			//print error if file is not opened for reading
-				//printf("File is not open.\n");
+						filereal = 1;
+						break;
+					}							
+			}
+
+			
+
+			//check if file exists
+			
+			if(filereal == 0){
+				printf("File does not exist.\n");
+				continue;
+			}
+
+			if(filereal == 2)
+				continue;
+
+			//check that file is open
+			int opencheck = 0;
+			int i;
+			for(i = 0; i < 100; i++){
+				if(strcmp(instr.tokens[1], &openFileList[i]) == 0)
+				{
+					opencheck = 1;
+					break;
+				}
+			}
+
+		
+			if(opencheck == 0){
+				printf("Error: File is not open.\n");
+				continue;
+			}
+
+
 
 			//print error if offset\inputitems[2] is larger than the size of the file
-				//printf("Offset is larger than the size of the file.\n");
+			if((inputitems[2] - '0') > (inputitems[3] - '0'))
+				printf("Error: Offset is larger than the size of the file.\n");
 		
 			//start reading the data from the file in the current working directory with the name filename/inputitems[1]
 				//read from the file at offset/inputitems[2] bytes and stop after reading size/inputitems[3] bytes
