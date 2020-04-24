@@ -134,7 +134,7 @@ int main(){
 	rootDirClusterAddr = BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec + (BPB_RsvdSecCnt * BPB_BytesPerSec);
 	curDirClusterAddr = rootDirClusterAddr;
 	
-	printf("Root Cluster Check: %x\n", curDirClusterAddr);
+	//printf("Root Cluster Check: %x\n", curDirClusterAddr);
 	//printf("offset: %x\n", offset);
 
 	do {
@@ -356,7 +356,11 @@ int main(){
 		}
 
 		else if(strcmp(instr.tokens[0], "read") == 0){	//scott
-			printf("read selected");
+			//check params are all there
+			if( instr.tokens[3] == NULL || instr.tokens[2] == NULL || instr.tokens[1] == NULL){
+				printf("Missing parameters.\n");
+				continue;
+			}
 
 			if(instr.numTokens == 4)
 			{
@@ -370,14 +374,11 @@ int main(){
 			//print error if filename/inputitems[1] does not exist
 				//printf("File does not exist.\n");
 
-			//print error if filename is a directory
-				//printf("Must be file to read.\n");
 
-			//print error if file is not opened for reading
-				//printf("File is not open.\n");
 
 			//print error if offset\inputitems[2] is larger than the size of the file
-				//printf("Offset is larger than the size of the file.\n");
+			if((inputitems[2] - '0') > (inputitems[3] - '0'))
+				printf("Error: Offset is larger than the size of the file.\n");
 		
 			//start reading the data from the file in the current working directory with the name filename/inputitems[1]
 				//read from the file at offset/inputitems[2] bytes and stop after reading size/inputitems[3] bytes
