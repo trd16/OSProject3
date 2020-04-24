@@ -13,6 +13,7 @@
 ## Compilation Instructions
 
 ## Known Bugs\Unfinished Portions
+*cp, mv, and read*: only do error checking
 
 
 ## Special Considerations
