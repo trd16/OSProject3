@@ -45,6 +45,10 @@ void size(char* file);
 void makeDir(char directory[]);
 void creatFile(char file[]);
 void writeFile(char* file, int offset, int size, char* buffer);
+void changeDir(instruction* instr);
+void readFile(instruction* instr); 
+void mv(instruction* instr);
+void cp(instruction* instr);
 
 unsigned int BPB_BytesPerSec;
 unsigned int BPB_SecPerClus;
@@ -187,47 +191,8 @@ int main(){
 		else if(strcmp(instr.tokens[0], "cd") == 0){	//scott
 			//printf("cd selected\n");
 
-			int dircheck = 0;
-			char temp[12];
-			int a;
-			int b;
-			for(b = 1; b < 16; b=b+2){
-				for(a = 0; a < 12; a++){
-					temp[a] = 0;
-					if(dir[b].DIR_Name[a] == ' ')
-						break;	
-					else
-						temp[a] = dir[b].DIR_Name[a];
-
-				}
-				if(strcmp(instr.tokens[1], temp) == 0 && dir[b].DIR_Attr == 16){
-					dircheck = 1;
-					break;
-				}
-			}	
+			changeDir(&instr);
 			
-			if(dircheck == 1)
-			{
-				//printf("Addr: %d", curDirClusterAddr);
-
-				//curDirClusterAddr = (( (int32_t) dir[b].DIR_FstClusLO - 2) * BPB_BytesPerSec) + (BPB_BytesPerSec * BPB_RsvdSecCnt) + (BPB_NumFATs * BPB_FATSz32 * BPB_BytesPerSec);
-
-				printf("It's a directory\n");
-			}
-			else
-			{
-				printf("Directory does not exist.\n");
-			}
-		
-			//////// ***** you'll be changing curDirClusterAddr and curDir to where the dir starts) ////////////////////////////////////
-
-			//check that dirname/inputitems[1] exists and is a directory
-				//change current working directory to dirname
-					//code will need to maintain current working directory state
-
-			
-			//if not print error
-				//fprint("Directory does not exist.\n");
 		}
 
 		else if(strcmp(instr.tokens[0], "creat") == 0){	//taylor
@@ -259,18 +224,11 @@ int main(){
 		}
 
 		else if(strcmp(instr.tokens[0], "mv") == 0){	//scott
-			printf("mv selected\n");
+			//printf("mv selected\n");
+
+			mv(&instr);
 
 
-			//if both to/inputitems[2] and from/inputitems[1] exist and are files print error
-				//printf("The name is already being used by another file.\n");
-			
-			//if to is a file and from is a directory print error
-				//printf("Cannot move directory: invalid destinationa argument.\n");
-
-			//otherwise if to exists and is a directory, the system will move the from entry to be inside the to directory
-
-			//if to does not exist the system will rename the from entry to the name specified by to
 
 		}
 
@@ -400,6 +358,15 @@ int main(){
 		else if(strcmp(instr.tokens[0], "read") == 0){	//scott
 			printf("read selected");
 
+			if(instr.numTokens == 4)
+			{
+				readFile(&instr);
+			}
+			else
+			{
+				printf("Not enough arguents.\n");
+			}
+
 			//print error if filename/inputitems[1] does not exist
 				//printf("File does not exist.\n");
 
@@ -466,16 +433,9 @@ int main(){
 		}
 
 		else if(strcmp(instr.tokens[0], "cp") == 0){	//scott
-			printf("cp selected\n");
+			//printf("cp selected\n");
 			
-			//print error if filename/inputitems[1] does not exist
-				//printf("File does not exist.\n");
-			
-			//copy the file specified by filename
-				//if to/inputitems[2] is a directory, copy the file directly into a folder
-				//if to is not a valid entry, create a copy of the file within the current working directory and assign it to the name given by to
-			
-
+			cp(&instr);
 
 		}
 
@@ -826,4 +786,285 @@ void writeFile(char* file, int fileOffset, int size, char* buffer) {
 	/*if (fileOffset + size > dir[b].DIR_FileSize) {
 		
 	}*/
+}
+
+void changeDir(instruction* instr)
+{
+	if(instr->numTokens == 2)
+	{
+		if(strcmp(instr->tokens[1], ".") == 0)	//do nothing
+			return;
+		if(strcmp(instr->tokens[1], "..") == 0)	
+		{
+			curDirClusterAddr = rootDirClusterAddr;
+			//curDir = rootDir;
+			return;
+		}
+
+		int dircheck = 0;
+		char temp[12];
+		int a;
+		int b;
+		for(b = 1; b < 16; b=b+2){
+			for(a = 0; a < 12; a++){
+				temp[a] = 0;
+				if(dir[b].DIR_Name[a] == ' ')
+					break;	
+				else
+					temp[a] = dir[b].DIR_Name[a];
+
+			}
+			if(strcmp(instr->tokens[1], temp) == 0 && dir[b].DIR_Attr == 16){
+				dircheck = 1;
+				break;
+			}
+		}	
+		
+		if(dircheck == 1)
+		{
+			printf("addr before: %d\n", curDirClusterAddr);
+			//printf("curDir: %d\n", curDir);
+
+			if(dir[b].DIR_FstClusLO == 0 && (strcmp(dir[b].DIR_Name, "..") == 0))
+			{
+				curDirClusterAddr = 0x2;
+				//curDir = 0x2;
+			}
+			else
+			{
+				curDirClusterAddr = dir[b].DIR_FstClusLO;
+				//curDir = dir[b].DIR_FstClusLO;
+			}
+
+			//printf("It's a directory\n");
+			printf("addr after: %d\n", curDirClusterAddr);
+			//printf("curDir: %d\n", curDir);
+
+			}
+			else
+			{
+				printf("Directory does not exist.\n");
+			}
+		
+			//////// ***** you'll be changing curDirClusterAddr and curDir to where the dir starts) ////////////////////////////////////
+
+			//check that dirname/inputitems[1] exists and is a directory
+				//change current working directory to dirname
+					//code will need to maintain current working directory state
+
+			
+			//if not print error
+				//fprint("Directory does not exist.\n");
+	}
+}
+
+void readFile(instruction* instr)
+{
+	
+if(instr->numTokens == 4)
+	{
+		if(strcmp(instr->tokens[1], ".") == 0)	//do nothing
+			return;
+
+		int dircheck = 0;
+		char temp[12];
+		int a;
+		int b;
+		for(b = 1; b < 16; b=b+2){
+			for(a = 0; a < 12; a++){
+				temp[a] = 0;
+				if(dir[b].DIR_Name[a] == ' ')
+					break;	
+				else
+					temp[a] = dir[b].DIR_Name[a];
+
+			}
+			if(strcmp(instr->tokens[1], temp) == 0 && dir[b].DIR_Attr == 16){
+				dircheck = 1;
+				break;
+			}
+		}	
+		
+		if(dircheck != 1)	//it's not a directory, might be a file
+		{
+			int clust = (int)dir[b].DIR_FstClusLO;
+			int offs = getOffset(clust);
+			char* bytes = malloc(instr->tokens[3]);
+
+			fseek(imagefile, offs + (int)instr->tokens[2], SEEK_SET);
+			fread(bytes, (int)instr->tokens[3], 1, dir);
+			printf("%s\n", bytes);
+
+
+		}
+		else if(dircheck == 1)
+			printf("FILENAME is a Directory.\n");
+	}
+
+}
+
+void mv(instruction* instr)
+{
+
+	if(instr->numTokens == 3)
+	{
+		int filereal = 0;
+			char temp[12];
+			char directory[16];
+			int p;
+			int j;
+			int z = 0;
+			for(j = 1; j < 16; j=j+2){
+				for(p = 0; p < 12; p++){
+					temp[p] = 0;
+					if(dir[j].DIR_Name[p] == ' ')
+						break;	
+					else
+						temp[p] = dir[j].DIR_Name[p];
+
+				}
+					if(strcmp(instr->tokens[1], temp) == 0){
+						filereal = 1;
+						
+						//check if file entered and give error if not
+						if(dir[j].DIR_Attr == 16)
+						{
+							printf("Enter a file, not directory.\n");
+							return;
+						}
+						break;
+					}							
+			}
+
+			//check if token[2] is a directory
+		int dircheck = 0;
+		temp[12];
+		int a;
+		int b;
+		for(b = 1; b < 16; b=b+2){
+			for(a = 0; a < 12; a++){
+				temp[a] = 0;
+				if(dir[b].DIR_Name[a] == ' ')
+					break;	
+				else
+					temp[a] = dir[b].DIR_Name[a];
+
+			}
+			if(strcmp(instr->tokens[1], temp) == 0 && dir[b].DIR_Attr == 16){
+				dircheck = 1;
+				break;
+			}
+		}	
+
+		if(dircheck == 1)
+		{
+			printf("Cannot move directory: invalid destinationa argument.\n");
+			return;
+		}
+
+			
+
+			//check if file exists
+			
+			if(filereal == 0)
+				printf("File does not exist.\n");
+			else
+			{
+				if(strcmp(instr->tokens[1], instr->tokens[2]) == 0)
+				{
+					printf("The name is already being used by another file.\n");
+				}
+				else if(dircheck == 1)
+				{}
+			}
+	}
+	else{
+		printf("ERROR: incorrect number of arguments.\n");
+	}
+
+
+//if both to/inputitems[2] and from/inputitems[1] exist and are files print error
+				//printf("The name is already being used by another file.\n");
+			
+			//if to is a file and from is a directory print error
+				//printf("Cannot move directory: invalid destinationa argument.\n");
+
+			//otherwise if to exists and is a directory, the system will move the from entry to be inside the to directory
+
+			//if to does not exist the system will rename the from entry to the name specified by to
+
+}
+
+
+void cp(instruction* instr)
+{
+
+	if(instr->numTokens == 3)
+	{
+		int dircheck = 0;
+		char temp[12];
+		int a;
+		int b;
+		for(b = 1; b < 16; b=b+2){
+			for(a = 0; a < 12; a++){
+				temp[a] = 0;
+				if(dir[b].DIR_Name[a] == ' ')
+					break;	
+				else
+					temp[a] = dir[b].DIR_Name[a];
+
+			}
+			if(strcmp(instr->tokens[1], temp) == 0 && dir[b].DIR_Attr == 16){
+				dircheck = 1;
+				break;
+			}
+		}	
+
+		int filereal = 0;
+			 temp[12];
+			char directory[16];
+			int p;
+			int j;
+			int z = 0;
+			for(j = 1; j < 16; j=j+2){
+				for(p = 0; p < 12; p++){
+					temp[p] = 0;
+					if(dir[j].DIR_Name[p] == ' ')
+						break;	
+					else
+						temp[p] = dir[j].DIR_Name[p];
+
+				}
+					if(strcmp(instr->tokens[1], temp) == 0){
+						filereal = 1;
+						
+						//check if file entered and give error if not
+						if(dir[j].DIR_Attr == 16)
+						{
+							printf("Enter a file, not directory.\n");
+							return;
+						}
+						break;
+					}							
+			}
+
+		
+		if(filereal == 0)	//it's not a file
+		{
+			printf("File does not exist.\n");
+		}
+		else
+		{}
+	}
+	else
+	{
+		printf("ERROR: incorrect number of arguments.\n");
+	}
+
+//print error if filename/inputitems[1] does not exist
+				//printf("File does not exist.\n");
+			
+			//copy the file specified by filename
+				//if to/inputitems[2] is a directory, copy the file directly into a folder
+				//if to is not a valid entry, create a copy of the file within the current working directory and assign it to the name given by to
 }
