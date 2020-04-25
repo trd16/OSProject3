@@ -888,6 +888,7 @@ if(instr->numTokens == 4)
 		
 		if(dircheck != 1)	//it's not a directory, might be a file
 		{
+			/*
 			int clust = (int)dir[b].DIR_FstClusLO;
 			int offs = getOffset(clust);
 			char* bytes = malloc(instr->tokens[3]);
@@ -895,6 +896,7 @@ if(instr->numTokens == 4)
 			fseek(imagefile, offs + (int)instr->tokens[2], SEEK_SET);
 			fread(bytes, (int)instr->tokens[3], 1, dir);
 			printf("%s\n", bytes);
+			*/
 
 
 		}
