@@ -28,6 +28,7 @@ We have correctly been able to retrieve information from the fat32 image file an
 *ls*: functions correctly with the home directory, but is unable to ls within other directories
 
 *cp, mv, and read*: only do error checking
+
 *cd*: Does error checking and attempts to change current directory variable
 
 
