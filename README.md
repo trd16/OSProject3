@@ -13,7 +13,7 @@
 
 *makefile*
 
-*README*
+*README.md*
 
 *fat32.img*  -our imagefile
 
