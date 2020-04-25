@@ -31,3 +31,4 @@ We have correctly been able to retrieve information from the fat32 image file an
 
 
 ## Special Considerations
+No special considerations necessary.
